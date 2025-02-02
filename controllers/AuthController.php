@@ -53,45 +53,50 @@ class AuthController {
 
         include 'views/auth/login.php';
     }
-
     public function register() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-            $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
-            $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
-
             try {
-                $stmt = $this->db->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'user')");
-                if ($stmt->execute([$name, $email, $password])) {
+                // Validate input
+                $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+                $username = filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING);
+                $password = $_POST['password'];
+                $confirmPassword = $_POST['confirm_password'];
+    
+                // Additional server-side validation
+                if (!$email || !$username || strlen($password) < 6) {
+                    throw new Exception("Invalid input data");
+                }
+    
+                if ($password !== $confirmPassword) {
+                    throw new Exception("Passwords do not match");
+                }
+    
+                // Check if email already exists
+                $stmt = $this->db->prepare("SELECT id FROM users WHERE email = ?");
+                $stmt->execute([$email]);
+                if ($stmt->fetch()) {
+                    throw new Exception("Email already registered");
+                }
+    
+                // Hash password and insert user
+                $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+                $stmt = $this->db->prepare(
+                    "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'user')"
+                );
+                
+                if ($stmt->execute([$username, $email, $hashedPassword])) {
                     header('Location: index.php?route=login&success=1');
                     exit;
+                } else {
+                    throw new Exception("Registration failed");
                 }
-            } catch (PDOException $e) {
+    
+            } catch (Exception $e) {
                 error_log($e->getMessage());
-                $error = "Registration failed. Please try again.";
+                $error = $e->getMessage();
             }
         }
+        
         include 'views/auth/register.php';
-    }
-
-    public function logout() {
-        // Start session if not already started
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        // Clear all session data
-        $_SESSION = array();
-
-        // Destroy the session cookie
-        if (isset($_COOKIE[session_name()])) {
-            setcookie(session_name(), '', time() - 3600, '/');
-        }
-
-        // Destroy the session
-        session_destroy();
-
-        // Show logout page
-        include 'views/auth/logout.php';
     }
 }

@@ -97,6 +97,12 @@ try {
             $mainController->generateReport($id);
             break;
 
+        // Add this new case for all reports
+        case 'events/report/all':
+            requireAuth();
+            $mainController->generateAllReports();
+            break;
+
         // Default route (home)
         case 'home':
         default:

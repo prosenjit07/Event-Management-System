@@ -10,9 +10,17 @@
     <div class="container py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="text-primary fw-bold">DASHBOARD PAGE</h2>
-            <a href="index.php?route=events/create" class="btn btn-primary rounded-pill px-4 shadow-sm hover-shadow">
-                <i class="bi bi-plus-circle me-2"></i>Create New Event
-            </a>
+            <div>
+            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+    <a href="index.php?route=events/report/all" 
+       class="btn btn-success me-2">
+        <i class="bi bi-download"></i> Download All Reports
+    </a>
+<?php endif; ?>
+                <a href="index.php?route=events/create" class="btn btn-primary rounded-pill px-4 shadow-sm hover-shadow">
+                    <i class="bi bi-plus-circle me-2"></i>Attendee Registration
+                </a>
+            </div>
         </div>
 
         <div class="card">
@@ -46,12 +54,12 @@
                                             <div class="btn-group">
                                                 <a href="index.php?route=events/edit&id=<?php echo $event['id']; ?>" 
                                                    class="btn btn-sm btn-outline-primary">Edit</a>
-                                                <?php if ($_SESSION['role'] === 'admin'): ?>
+                                                <!-- <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
                                                     <a href="index.php?route=events/report&id=<?php echo $event['id']; ?>" 
-                                                       class="btn btn-sm btn-outline-success">
-                                                       <i class="bi bi-download"></i> Download Report
+                                                       class="btn btn-sm btn-outline-info">
+                                                        <i class="bi bi-download"></i> Download Report
                                                     </a>
-                                                <?php endif; ?>
+                                                <?php endif; ?> -->
                                                 <button onclick="deleteEvent(<?php echo $event['id']; ?>)" 
                                                         class="btn btn-sm btn-outline-danger">Delete</button>
                                             </div>
